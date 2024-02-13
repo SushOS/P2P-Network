@@ -19,7 +19,7 @@ class peerNode:
         self.chosen_peers = set()
         self.chosen_seeds = []
         self.config_data = config_data
-        self.ML = {} # A dictionary of message hashes. As hashes are one to one functions, each hash corresponds to a single value
+        self.msg_lst = {} # A dictionary of message hashes. As hashes are one to one functions, each hash corresponds to a single value
         self.msg_cnt = 0 
         self.timestamp = 0.0
 
@@ -80,15 +80,15 @@ class peerNode:
         while self.msg_cnt < MAX_MSG_PER_PEER: # A node stops after it has generated 10 messages
             message = self.gossip_msg()
             message_hash = hashlib.sha256(message.encode()).hexdigest()
-            if message_hash not in self.ML:
-                self.ML[message_hash] = set() # we have created a set as a particular node can send the message to the connected node at most once
+            if message_hash not in self.msg_lst:
+                self.msg_lst[message_hash] = set() # we have created a set as a particular node can send the message to the connected node at most once
             for (frnd_host, frnd_port) in self.chosen_peers:
                 try:
                     frnd_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     frnd_socket.connect((frnd_host, frnd_port))
                     frnd_socket.sendall(message.encode())
                     frnd_socket.close()
-                    self.ML[message_hash].add((frnd_host, frnd_port))
+                    self.msg_lst[message_hash].add((frnd_host, frnd_port))
                     print(f"Message broadcasted to {frnd_host}:{frnd_port}")
                 except Exception as e:
                     print(f"Failed to broadcast message to {frnd_host}:{frnd_port}")
@@ -97,12 +97,26 @@ class peerNode:
             time.sleep(MSG_INTERVAL)
 
     def liveness(self):
-        fails = 0
-        while fails<3:
+        consec_fails = 0
+        while consec_fails<3:
             for frnd_host, frnd_port in self.chosen_peers:
                 try:
                     frnd_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    
+                    frnd_socket.connect((frnd_host, frnd_port))
+                    req = "LIVENESS_CHECK"
+                    frnd_socket.sendall(req.encode())
+                    resp = frnd_socket.recv(MESSAGE_SIZE).decode()
+                    if resp == "ALIVE":
+                        consec_fails = 0 # reset the number of fails
+                    frnd_socket.close()
+                except Exception as e:
+                    consec_fails+=1
+                    if fails >= 3:
+                        self.notify_seed(frnd_host, frnd_port)
+                        self.chosen_peers.remove((frnd_host, frnd_port))
+            time.sleep(LIVENESS_CHECK) # Waut for 13 seconds to check the liveness of the next Node.
+
+
                 
 def main():
     with open('./config_file.json') as config_file:
