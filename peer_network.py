@@ -4,6 +4,7 @@ import json
 import random
 import time
 import hashlib
+import ipaddress
 
 MESSAGE_SIZE = 1024
 MAX_PEERS = 4
@@ -26,7 +27,7 @@ class peerNode:
 #------------------------------------------------------------------------------------------
     def start(self):
         threading.Thread(target=self.broadcast_msg).start()
-        threading.Thread(target=self.check_peer_liveness).start()
+        threading.Thread(target=self.liveness).start()
 #------------------------------------------------------------------------------------------    
     def choose_nodes(self):
         n = len(seed_nodes)
@@ -50,7 +51,7 @@ class peerNode:
             try:
                 seed_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 seed_socket.connect((s_host, s_port))
-                seed_socket.sendall("GET PEER LIST")
+                seed_socket.sendall("GET PEER LIST".encode())
                 peer_list = seed_socket.recv(MESSAGE_SIZE).decode().split(",")
                 connected_peers.extend(peer_list)
                 seed_socket.close()
@@ -105,7 +106,7 @@ class peerNode:
     def liveness(self):
         consec_fails = 0
         while consec_fails<3:
-            for frnd_host, frnd_port in self.chosen_peers:
+            for (frnd_host, frnd_port) in self.chosen_peers:
                 try:
                     frnd_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     frnd_socket.connect((frnd_host, frnd_port))
@@ -114,27 +115,43 @@ class peerNode:
                     resp = frnd_socket.recv(MESSAGE_SIZE).decode()
                     if resp == "ALIVE":
                         consec_fails = 0 # reset the number of fails
+                        print(f"Peer {frnd_host}:{frnd_port}")
                     frnd_socket.close()
                 except Exception as e:
                     consec_fails+=1
                     if consec_fails >= 3:
                         self.notify_seed(frnd_host, frnd_port)
                         self.chosen_peers.remove((frnd_host, frnd_port))
+                        print(f"Peer {frnd_host}:{frnd_port} is DEAD...")
             time.sleep(LIVENESS_CHECK) # Wait for 13 seconds to check the liveness of the next Node.
 #------------------------------------------------------------------------------------------
-    # def notify_seed(self, peer_host, peer_port):
-
+    def notify_seed(self, peer_host, peer_port):
+        for (s_host, s_port) in self.chosen_seeds:
+            try:
+                seed_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                seed_sock.connect((s_host, s_port))
+                print(f"The peer at {peer_host}:{peer_port} is dead!")
+                seed_sock.sendall("DEAD NODE".encode())
+                confirmation = seed_sock.recv(MESSAGE_SIZE).decode()
+                print(f"Sent dead node message to seed node {s_host}:{s_port}")
+                if confirmation == "REMOVED":
+                    print("The seed confirms that the dead node has been removed!")
+            except Exception as e:
+                print(f"Error notifying seed node {peer_host}:{peer_port} about dead node, {e}")
+#------------------------------------------------------------------------------------------
 
 def main():
     with open('./config_file.json') as config_file:
         config_data = json.load(config_file)
     global seed_nodes
+
     seed_nodes = []
     seed_addresses = config_data["Seed_addresses"]
     for seed_info in seed_addresses:
         host = seed_info.get("Host")
         port = seed_info.get("Port")
         seed_nodes.append((host, port))
+
 
     peer = peerNode("127.0.0.1", 54321, config_data)
     peer.connect_to_seeds()

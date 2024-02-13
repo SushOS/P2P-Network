@@ -1,6 +1,7 @@
 import socket
 import threading
 import json
+import ipaddress
 
 MESSAGE_SIZE = 1024
 
@@ -29,7 +30,7 @@ class seedNode:
             self.add_peer(request.split()[1], int(request.split()[2]))
         elif request == "GET PEER LIST":
             self.send_peerlist(peer_socket)
-        elif request.startswith("DEAD_NODE"):
+        elif request.startswith("DEAD NODE"):
             self.remove_dead_node(request.split()[1], int(request.split()[2]))
         elif request == "LIVENESS CHECK":
             peer_socket.sendall("ALIVE".encode())
@@ -37,6 +38,7 @@ class seedNode:
     #------------------------------------------------------------------------------------------
     def send_peerlist(self, peer_socket):
         peerlist = ",".join([f"{peer[0]}:{peer[1]}" for peer in self.connected_peers])
+        print(peerlist)
         peer_socket.sendall(peerlist.encode())
         print(f"Sent peer list to {peer_socket.getpeername()[0]}:{peer_socket.getpeername()[1]}")
     #------------------------------------------------------------------------------------------
@@ -48,6 +50,7 @@ class seedNode:
         if (host, port) in self.connected_peers:
             self.connected_peers.remove((host, port))
             print(f"The node at {host}:{port} was dead and is now removed.")
+            self.seed_socket.sendall("REMOVED").encode()
     #------------------------------------------------------------------------------------------
             
 def main():
