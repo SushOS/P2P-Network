@@ -9,6 +9,7 @@ MESSAGE_SIZE = 1024
 MAX_PEERS = 4
 MAX_MSG_PER_PEER = 10
 MSG_INTERVAL = 5
+LIVENESS_CHECK = 13
 
 class peerNode:
     def __init__(self, p_host, p_port, config_data):
@@ -94,6 +95,14 @@ class peerNode:
             self.msg_cnt+=1
             # After the node has broadcated a message it needs to stop for 5 seconds to broadcst the next message.
             time.sleep(MSG_INTERVAL)
+
+    def liveness(self):
+        fails = 0
+        while fails<3:
+            for frnd_host, frnd_port in self.chosen_peers:
+                try:
+                    frnd_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    
                 
 def main():
     with open('./config_file.json') as config_file:
