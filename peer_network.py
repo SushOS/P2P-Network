@@ -111,7 +111,7 @@ class peerNode:
                     frnd_socket.close()
                 except Exception as e:
                     consec_fails+=1
-                    if fails >= 3:
+                    if consec_fails >= 3:
                         self.notify_seed(frnd_host, frnd_port)
                         self.chosen_peers.remove((frnd_host, frnd_port))
             time.sleep(LIVENESS_CHECK) # Waut for 13 seconds to check the liveness of the next Node.
