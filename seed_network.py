@@ -31,6 +31,8 @@ class seedNode:
             self.send_peerlist(peer_socket)
         elif request.startswith("DEAD_NODE"):
             self.remove_dead_node(request.split()[1], int(request.split()[2]))
+        elif request == "LIVENESS CHECK":
+            peer_socket.sendall("LIVENESS REPLY".encode())
         peer_socket.close()
     #------------------------------------------------------------------------------------------
     def send_peerlist(self, peer_socket):
