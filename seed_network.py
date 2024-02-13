@@ -1,9 +1,9 @@
 import socket
 import threading
 import json
-import ipaddress
 
 MESSAGE_SIZE = 1024
+
 
 class seedNode:
     def __init__(self, host, port):
@@ -11,50 +11,81 @@ class seedNode:
         self.s_host = host
         self.s_port = port
         self.s_address = (self.s_host, self.s_port)
-    #------------------------------------------------------------------------------------------
-    def startseed(self):
         self.seed_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.seed_socket.bind((self.s_host, self.s_port))
         self.seed_socket.listen()
+
+    # ------------------------------------------------------------------------------------------
+    def startseed(self):
+
         print(f"The seed node is listening at {self.s_host}:{self.s_port}")
 
         while True:
             peer_socket, peer_address = self.seed_socket.accept()
             print(f"A peer from {peer_address} has connected.")
-            threading.Thread(target= self.handle_peer, args=(peer_socket,)).start()
-    #------------------------------------------------------------------------------------------
-    def handle_peer(self, peer_socket):
-        request = peer_socket.recv(MESSAGE_SIZE).decode()
+            threading.Thread(target=self.handle_peer, args=(peer_socket,)).start()
 
-        if request.startswith("REGISTER"):
-            self.add_peer(request.split()[1], int(request.split()[2]))
-        elif request == "GET PEER LIST":
-            self.send_peerlist(peer_socket)
-        elif request.startswith("DEAD NODE"):
-            self.remove_dead_node(request.split()[1], int(request.split()[2]))
-        elif request == "LIVENESS CHECK":
-            peer_socket.sendall("ALIVE".encode())
-        peer_socket.close()
-    #------------------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------------------
+    def handle_peer(self, peer_socket):
+        while True:
+            try:
+                request = peer_socket.recv(MESSAGE_SIZE).decode()
+
+                if request.startswith("REGISTER"):
+                    self.add_peer(request.split()[1], int(request.split()[2]))
+                elif request == "GET PEER LIST":
+                    self.send_peerlist(peer_socket)
+                elif request.startswith("DEAD NODE"):
+                    self.remove_dead_node(request.split()[1], int(request.split()[2]))
+                elif request == "LIVENESS CHECK":
+                    peer_socket.sendall("ALIVE".encode())
+                elif request:
+                    print(request)
+            except:
+                pass
+
+            # try:
+            #     while(True):
+            #         try:
+            #             req = peer_socket.recv(MESSAGE_SIZE).decode()
+            #             if(req):
+            #                 print(req)
+            #         except:
+            #             continue
+
+            # except:
+            #     print("Error in handling")
+        # peer_socket.close()
+
+    # ------------------------------------------------------------------------------------------
     def send_peerlist(self, peer_socket):
-        peerlist = ",".join([f"{peer[0]}:{peer[1]}" for peer in self.connected_peers])
-        print(peerlist)
+        peerlist = ",".join(
+            [f"{peer[0]}:{peer[1]}" for peer in list(self.connected_peers)]
+        )
+        # peerlist = list(self.connected_peers)
+        # print(peerlist)
         peer_socket.sendall(peerlist.encode())
-        print(f"Sent peer list to {peer_socket.getpeername()[0]}:{peer_socket.getpeername()[1]}")
-    #------------------------------------------------------------------------------------------
+        print(
+            f"Sent peer list to {peer_socket.getpeername()[0]}:{peer_socket.getpeername()[1]}"
+        )
+
+    # ------------------------------------------------------------------------------------------
     def add_peer(self, host, port):
         self.connected_peers.add((host, port))
         print(f"New peer at {host}:{port} is now registered.")
-    #------------------------------------------------------------------------------------------
+
+    # ------------------------------------------------------------------------------------------
     def remove_dead_node(self, host, port):
         if (host, port) in self.connected_peers:
             self.connected_peers.remove((host, port))
             print(f"The node at {host}:{port} was dead and is now removed.")
-            self.seed_socket.sendall("REMOVED").encode()
-    #------------------------------------------------------------------------------------------
-            
+            self.seed_socket.sendall("REMOVED".encode())
+
+    # ------------------------------------------------------------------------------------------
+
+
 def main():
-    with open('./config_file.json') as config_file:
+    with open("./config_file.json") as config_file:
         config_data = json.load(config_file)
 
     N = config_data["num_seeds"]
@@ -66,6 +97,7 @@ def main():
         seed_node = seedNode(host, port)
         seed_thread = threading.Thread(target=seed_node.startseed)
         seed_thread.start()
+
 
 if __name__ == "__main__":
     main()
