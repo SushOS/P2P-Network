@@ -89,7 +89,6 @@ class peerNode:
         chosen_peers.remove(f"{self.p_host}:{self.p_port}")
         print(f"The chosen peers are : {chosen_peers}")
         for peer_details in chosen_peers:
-            # print(peer_details)
             peer_details = peer_details.split(":")
             print(f"The peer details are : {peer_details}")
             peer_host, peer_port = peer_details[0], int(peer_details[1])
@@ -149,8 +148,6 @@ class peerNode:
         socket.sendall(msg.encode())
 
     def broadcast_msg(self, msg):
-        # if self.msg_cnt < MAX_MSG_PER_PEER: # A node stops after it has generated 10 messages
-        # message = self.gossip_msg()
         message_hash = hashlib.sha256(msg.encode()).hexdigest()
         if message_hash in self.msg_lst:
             return
@@ -159,27 +156,22 @@ class peerNode:
                 set()
             )  # we have created a set as a particular node can send the message to the connected node at most once
         for socket in self.neigh_socket_lst:
-            # if self.msg_cnt < MAX_MSG_PER_PEER:
             try:
                 self.msg_lst[message_hash].add(socket)
                 print(f"Message broadcasted ")
                 threading.Thread(target=self.broadcast, args=(socket, msg))
-                # with open(OUTPUT_FILE, "a") as file:
-                #     file.write(f"Broadcasted message to {frnd_host}:{frnd_port}: {msg}\n")
+
             except Exception as e:
-                # print(f"Failed to broadcast message to {frnd_host}:{frnd_port}")
-                # with open(OUTPUT_FILE, "a") as file:
-                #     file.write(f"Failed to broadcast message to {frnd_host}:{frnd_port}: {msg}\n")
                 print("Exception in broadcast")
 
     def gossip_in_net(self, socket):
         try:
-            count = 10
+            count = MAX_MSG_PER_PEER
             while count > 0:
                 num = random.randint(1, 100000)
                 socket.sendall(f"This is gossip Message {num}".encode())
                 count = count - 1
-                time.sleep(5)
+                time.sleep(MSG_INTERVAL)
         except:
             print("Error in gossip_in_net")
 
@@ -214,7 +206,7 @@ class peerNode:
                                 print(
                                     f"Failed to get the peer nodes from the seed at {s_host}:{s_port}, {e}"
                                 )
-                time.sleep(10)
+                time.sleep(MAX_MSG_PER_PEER)
 
         except:
             print("Error in liveliness")
@@ -239,7 +231,6 @@ class peerNode:
                     if resp[0] == "LIVENESS_REPLY":
                         consec_fails = 0  # reset the number of fails
                         print(f"Peer {frnd_host}:{frnd_port}")
-                    # frnd_socket.close()
                 except Exception as e:
                     consec_fails += 1
                     if consec_fails >= 3:
@@ -249,22 +240,6 @@ class peerNode:
             time.sleep(
                 LIVENESS_CHECK
             )  # Wait for 13 seconds to check the liveness of the next Node.
-
-
-# #------------------------------------------------------------------------------------------
-#     def notify_seed(self, peer_host, peer_port):
-#         for (s_host, s_port) in self.chosen_seeds:
-#             try:
-#                 seed_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#                 seed_sock.connect((s_host, s_port))
-#                 print(f"The peer at {peer_host}:{peer_port} is dead!")
-#                 seed_sock.sendall("DEAD NODE".encode())
-#                 confirmation = seed_sock.recv(MESSAGE_SIZE).decode()
-#                 print(f"Sent dead node message to seed node {s_host}:{s_port}")
-#                 if confirmation == "REMOVED":
-#                     print("The seed confirms that the dead node has been removed!")
-#             except Exception as e:
-#                 print(f"Error notifying seed node {peer_host}:{peer_port} about dead node, {e}")
 
 
 if __name__ == "__main__":
