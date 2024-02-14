@@ -1,0 +1,18 @@
+The peer connected to seed node at 127.0.0.1:12345
+The peer connected to seed node at 127.0.0.1:12346
+The peer connected to seed node at 127.0.0.1:12349
+The peer list sent by the seed is : ['127.0.0.1:21235']
+Connected peers to seed 127.0.0.1:12345 are : {'127.0.0.1:21235'}
+The peer list sent by the seed is : ['127.0.0.1:21235', '127.0.0.1:23415']
+Connected peers to seed 127.0.0.1:12346 are : {'127.0.0.1:23415', '127.0.0.1:21235'}
+The peer list sent by the seed is : ['127.0.0.1:21235', '127.0.0.1:23415']
+Connected peers to seed 127.0.0.1:12349 are : {'127.0.0.1:23415', '127.0.0.1:21235'}
+The peer list sent by the seed is : ['127.0.0.1:21235']
+Connected peers to seed 127.0.0.1:12345 are : {'127.0.0.1:21235'}
+The peer list sent by the seed is : ['127.0.0.1:21235', '127.0.0.1:23415']
+Connected peers to seed 127.0.0.1:12346 are : {'127.0.0.1:23415', '127.0.0.1:21235'}
+The peer list sent by the seed is : ['127.0.0.1:21235', '127.0.0.1:23415']
+Connected peers to seed 127.0.0.1:12349 are : {'127.0.0.1:23415', '127.0.0.1:21235'}
+The chosen peers are : ['127.0.0.1:23415']
+The peer details are : ['127.0.0.1', '23415']
+Connected to peer at 127.0.0.1:23415

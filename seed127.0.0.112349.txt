@@ -1,0 +1,24 @@
+A peer from ('127.0.0.1', 65062) has connected.
+New peer at 127.0.0.1:23415 is now registered.
+A peer from ('127.0.0.1', 65065) has connected.
+Sent peer list to 127.0.0.1:65065
+A peer from ('127.0.0.1', 65068) has connected.
+Sent peer list to 127.0.0.1:65068
+A peer from ('127.0.0.1', 65073) has connected.
+New peer at 127.0.0.1:21235 is now registered.
+A peer from ('127.0.0.1', 65076) has connected.
+Sent peer list to 127.0.0.1:65076
+A peer from ('127.0.0.1', 65079) has connected.
+Sent peer list to 127.0.0.1:65079
+A peer from ('127.0.0.1', 65157) has connected.
+New peer at 127.0.0.1:54322 is now registered.
+A peer from ('127.0.0.1', 65160) has connected.
+Sent peer list to 127.0.0.1:65160
+A peer from ('127.0.0.1', 65163) has connected.
+Sent peer list to 127.0.0.1:65163
+A peer from ('127.0.0.1', 65165) has connected.
+New peer at 127.0.0.1:54323 is now registered.
+A peer from ('127.0.0.1', 65168) has connected.
+Sent peer list to 127.0.0.1:65168
+A peer from ('127.0.0.1', 65171) has connected.
+Sent peer list to 127.0.0.1:65171

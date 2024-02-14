@@ -159,6 +159,9 @@ class PeerNode:
                 threading.Thread(
                     target=self.Liveliness_Check, args=(peer_socket,)
                 ).start()
+                threading.Thread(
+                    target=self.handle_peer_connection, args=(peer_socket,)
+                ).start()
             except Exception as e:
                 msg = f"Error connecting to peer {peer_host}:{peer_port}, {e}"
                 print(msg)
@@ -316,6 +319,18 @@ class PeerNode:
                 time.sleep(LIVENESS_CHECK_INTERVAL)
         except:
             print("Error in Liveliness_Check")
+
+    
+    def handle_peer_connection(self, peer_socket):
+        try:
+            while True:
+                req = peer_socket.recv(MESSAGE_SIZE)
+                req = req.decode()
+                print(req)
+                if req.startswith("Gossip"):
+                    threading.Thread(target=self.Forward_Message, args=(req,)).start()
+        except Exception as e:
+            print(f"Error handling peer connection: {e}")
 
 
 if __name__ == "__main__":
