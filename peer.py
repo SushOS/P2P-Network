@@ -320,7 +320,7 @@ class PeerNode:
 
 if __name__ == "__main__":
     # Read the configuration file to get Seed Node Details
-    with open("./config.json") as config_file:
+    with open("./config_file.json") as config_file:
         config_data = json.load(config_file)
     # Extract the number of seed nodes and their addresses
     seed_addresses = config_data["Seed_addresses"]
